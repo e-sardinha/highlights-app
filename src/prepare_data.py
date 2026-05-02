@@ -35,18 +35,21 @@ def load_and_split(
     print(df.head())
 
     # Remove linhas sem texto ou sem categoria
-    df = df.dropna(subset=["short_description", "category"])
+    df = df.dropna(subset=["headline", "category"])
 
     # Remove linhas com texto vazio
-    df = df[df["short_description"].str.strip() != ""]
+    df = df[df["headline"].str.strip() != ""]
 
     # Normalização básica do texto (minúsculas + remover espaços extras)
-    df["short_description"] = df["short_description"].str.lower().str.strip()
+    df["headline"] = df["headline"].str.lower().str.strip()
 
     # Reduz as categorias às 5 mais comuns e agrupa o restante como OTHER, Isso é para simplificação já que é um experimento meramente didático.
     # Em um projeto real, a escolha de manter ou agrupar categorias deve ser feita com base na análise do domínio e dos dados.
     top_categories = df["category"].value_counts().nlargest(5).index
     df["category"] = df["category"].where(df["category"].isin(top_categories), "OTHER")
+
+    # Mantém apenas as colunas headline e category, removendo todas as demais
+    df = df[["headline", "category"]]
 
     print("Distribuição de categorias após agregação para OTHER:")
     print(df["category"].value_counts())
@@ -61,7 +64,7 @@ def load_and_split(
     print(f"Distribuição de categorias após balanceamento:")
     print(df_balanced['category'].value_counts())
 
-    X = df_balanced["short_description"]
+    X = df_balanced["headline"]
     y = df_balanced["category"]
 
     # stratify=y garante que a proporção de classes seja igual em treino e teste

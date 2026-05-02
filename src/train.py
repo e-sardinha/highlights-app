@@ -47,11 +47,11 @@ mlflow.set_experiment("classificacao-noticias")
 # MUDE ESTES PARÂMETROS A CADA EXPERIMENTO
 # ════════════════════════════════════════════════════════════════════════════
 MAX_FEATURES = 10000     # Quantas palavras/termos o TF-IDF vai considerar
-NGRAM_MAX    = 2        # 1 = unigramas | 2 = uni + bigramas
+NGRAM_MAX    = 2         # 1 = unigramas | 2 = uni + bigramas
 C            = 10.0      # Parâmetro de regularização da Regressão Logística
                         # C pequeno = mais regularização (modelo simples)
                         # C grande  = menos regularização (modelo complexo)
-RUN_NAME     = "exp-3-vocab-largo"   # MUDE a cada run para identificar no DagsHub!
+RUN_NAME     = "exp-31-vocab-largo"   # MUDE a cada run para identificar no DagsHub!
 # ════════════════════════════════════════════════════════════════════════════
 
 
