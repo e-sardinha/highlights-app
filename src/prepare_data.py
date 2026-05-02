@@ -31,6 +31,8 @@ def load_and_split(
         X_train, X_test, y_train, y_test
     """
     df = pd.read_json(path, orient='records', lines=True)
+    print(f"Dataset original carregado com {len(df)} amostras")
+    print(df.head())
 
     # Remove linhas sem texto ou sem categoria
     df = df.dropna(subset=["short_description", "category"])
@@ -40,6 +42,14 @@ def load_and_split(
 
     # Normalização básica do texto (minúsculas + remover espaços extras)
     df["short_description"] = df["short_description"].str.lower().str.strip()
+
+    # Reduz as categorias às 5 mais comuns e agrupa o restante como OTHER, Isso é para simplificação já que é um experimento meramente didático.
+    # Em um projeto real, a escolha de manter ou agrupar categorias deve ser feita com base na análise do domínio e dos dados.
+    top_categories = df["category"].value_counts().nlargest(5).index
+    df["category"] = df["category"].where(df["category"].isin(top_categories), "OTHER")
+
+    print("Distribuição de categorias após agregação para OTHER:")
+    print(df["category"].value_counts())
 
     # Balanceamento: undersample para o tamanho da classe minoritária
     # Isso evita que o modelo fique enviesado para as classes majoritárias, mas reduz o número total de amostras.
