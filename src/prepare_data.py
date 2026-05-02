@@ -41,8 +41,18 @@ def load_and_split(
     # Normalização básica do texto (minúsculas + remover espaços extras)
     df["short_description"] = df["short_description"].str.lower().str.strip()
 
-    X = df["short_description"]
-    y = df["category"]
+    # Balanceamento: undersample para o tamanho da classe minoritária
+    # Isso evita que o modelo fique enviesado para as classes majoritárias, mas reduz o número total de amostras.
+    # O Exemplo é meramente didático, para um projeto real, técnicas mais avançadas de balanceamento (como oversampling ou geração de dados sintéticos) podem ser consideradas.
+    min_count = df['category'].value_counts().min()
+    df_balanced = df.groupby('category', group_keys=False).apply(lambda x: x.sample(min_count, random_state=seed)).reset_index(drop=True)
+
+    print(f"Dataset balanceado com {len(df_balanced)} amostras (min_count: {min_count})")
+    print(f"Distribuição de categorias após balanceamento:")
+    print(df_balanced['category'].value_counts())
+
+    X = df_balanced["short_description"]
+    y = df_balanced["category"]
 
     # stratify=y garante que a proporção de classes seja igual em treino e teste
     return train_test_split(
