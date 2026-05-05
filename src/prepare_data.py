@@ -7,15 +7,15 @@ Uso standalone:
 Uso como módulo (importado pelo train.py e evaluate.py):
     from src.prepare_data import load_and_split
 """
-#from pathlib import Path
-#BASE_DIR = Path(__file__).resolve().parent.parent
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
 def load_and_split(
-    path: str = "data/News_Category_Dataset_v3.json",
+    path: str = str(BASE_DIR / "data/News_Category_Dataset_v3.json"),
     test_size: float = 0.2,
     seed: int = 42,
 ):
@@ -30,6 +30,7 @@ def load_and_split(
     Retorna:
         X_train, X_test, y_train, y_test
     """
+    print(f"Carregando dados de: {path}")
     df = pd.read_json(path, orient='records', lines=True)
     print(f"Dataset original carregado com {len(df)} amostras")
     print(df.head())
@@ -63,6 +64,11 @@ def load_and_split(
     print(f"Dataset balanceado com {len(df_balanced)} amostras (min_count: {min_count})")
     print(f"Distribuição de categorias após balanceamento:")
     print(df_balanced['category'].value_counts())
+
+    # Salva o dataset limpo e balanceado para referência futura (opcional)
+    balanced_path = BASE_DIR / "data/News_Category_Dataset_balanced.csv"
+    df_balanced.to_csv(balanced_path, index=False)
+    print(f"Dataset balanceado salvo em: {balanced_path}")
 
     X = df_balanced["headline"]
     y = df_balanced["category"]
