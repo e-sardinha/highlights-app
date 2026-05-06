@@ -18,6 +18,12 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score, classification_report
 from dotenv import load_dotenv
 
+# ── Adiciona a raiz do projeto ao Python Path ────────────────────────────────
+# Isso garante que o Python encontre o módulo "src" independente de onde o script for chamado
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 # Importa a função de preparação de dados do nosso módulo
 from src.prepare_data import load_and_split
 
@@ -48,10 +54,11 @@ mlflow.set_experiment("classificacao-noticias")
 # ════════════════════════════════════════════════════════════════════════════
 MAX_FEATURES = 10000     # Quantas palavras/termos o TF-IDF vai considerar
 NGRAM_MAX    = 2         # 1 = unigramas | 2 = uni + bigramas
-C            = 10.0      # Parâmetro de regularização da Regressão Logística
+C            = 10      # Parâmetro de regularização da Regressão Logística
                         # C pequeno = mais regularização (modelo simples)
                         # C grande  = menos regularização (modelo complexo)
-RUN_NAME     = "exp-31-vocab-largo"   # MUDE a cada run para identificar no DagsHub!
+RUN_NAME     = "exp-33-vocab-largo"   # MUDE a cada run para identificar no DagsHub!
+# RUN_NAME     = "exp-3-baseline"   # MUDE a cada run para identificar no DagsHub!
 # ════════════════════════════════════════════════════════════════════════════
 
 
