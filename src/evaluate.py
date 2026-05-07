@@ -49,13 +49,19 @@ def main():
     # Busca a versão mais recente do modelo registrada no MLflow
     client = MlflowClient()
     model_name = "NewsCategoryClassifier"
-    
-    versions = client.search_model_versions(f"name='{model_name}'")
-    if not versions:
-        raise ValueError(f"Nenhum modelo '{model_name}' encontrado no DagsHub!")
+
+    # Buca primeiro a versão mais recente promovida (production), se existir. Caso contrário, pega a última versão registrada.
+    production_version = client.get_model_version_by_alias(model_name, "production")
+    if production_version:
+        print(f"Versão de produção encontrada: {production_version.version}")
+        model_uri = f"models:/{model_name}@production"
+    else:
+        versions = client.search_model_versions(f"name='{model_name}'")
+        if not versions:
+            raise ValueError(f"Nenhum modelo '{model_name}' encontrado no DagsHub!")
         
-    latest_version = max([int(v.version) for v in versions])
-    model_uri = f"models:/{model_name}/{latest_version}"
+        latest_version = max([int(v.version) for v in versions])
+        model_uri = f"models:/{model_name}/{latest_version}"
 
     print(f"Baixando modelo: {model_uri}")
     print(f"Fonte: https://dagshub.com/{DAGSHUB_REPO_NAME}")
