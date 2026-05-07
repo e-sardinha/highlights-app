@@ -15,6 +15,9 @@ import mlflow.sklearn
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import LinearSVC
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score, classification_report
 from dotenv import load_dotenv
 
@@ -52,13 +55,15 @@ mlflow.set_experiment("classificacao-noticias")
 # ════════════════════════════════════════════════════════════════════════════
 # MUDE ESTES PARÂMETROS A CADA EXPERIMENTO
 # ════════════════════════════════════════════════════════════════════════════
-MAX_FEATURES = 10000     # Quantas palavras/termos o TF-IDF vai considerar
+MAX_FEATURES = 10000     # Quantas palavras/termos o TF-IDF vai considerar (= tamanho do vocabulário)
 NGRAM_MAX    = 2         # 1 = unigramas | 2 = uni + bigramas
-C            = 10      # Parâmetro de regularização da Regressão Logística
+C            = 10      # Parâmetro de regularização da Regressão Logística/LinearSVC ignorado pelo MultinomialNB   
                         # C pequeno = mais regularização (modelo simples)
                         # C grande  = menos regularização (modelo complexo)
-RUN_NAME     = "exp-33-vocab-largo"   # MUDE a cada run para identificar no DagsHub!
-# RUN_NAME     = "exp-3-baseline"   # MUDE a cada run para identificar no DagsHub!
+ALPHA        = 0     # Parâmetro de suavização do MultinomialNB (ignorado pelos outros modelos)
+RUN_NAME     = "exp-1-vocab-largo_multinomialnb_alpha0"   # MUDE a cada run para identificar no DagsHub!
+ESTIMATORS = 1000   # Número de árvores no Random Forest (ignorado pelos outros modelos)
+RUN_NAME     = "exp-1-randonforeste1000"   # MUDE a cada run para identificar no DagsHub!
 # ════════════════════════════════════════════════════════════════════════════
 
 
@@ -92,12 +97,10 @@ def main():
                 strip_accents="unicode",  # normaliza acentos
                 sublinear_tf=True,        # aplica log ao TF para suavizar
             )),
-            ("clf", LogisticRegression(
-                C=C,
-                max_iter=1000,
-                solver="lbfgs",
-                multi_class="multinomial",  # suporte a múltiplas classes
-            )),
+            #("clf", LogisticRegression(C=C, max_iter=1000, solver="lbfgs", multi_class="multinomial",))  # suporte a múltiplas classes
+            # ── OUTRAS OPÇÕES DE MODELOS PARA EXPERIMENTAR (Basta descomentar) ──
+            #("clf", LinearSVC(C=C, max_iter=1000, dual=False)),
+            # ────────────────────────────────────────────────────────────────────
         ])
 
         # 3. Treina o modelo
