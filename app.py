@@ -1,12 +1,12 @@
 """
-app.py — Interface Streamlit para análise de sentimento de reviews.
+app.py — Interface Streamlit para classificação de destaques de notícias.
 
 Execute com:
     streamlit run app.py
 
 Ou via Docker:
-    docker build --build-arg DAGSHUB_USER=... -t sentimento-app .
-    docker run -p 8501:8501 sentimento-app
+    docker build --build-arg DAGSHUB_USER=... -t highlights-app .
+    docker run -p 8501:8501 highlights-app
 """
 
 import streamlit as st
@@ -15,7 +15,7 @@ import joblib
 
 # ── Configuração da página ───────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Análise de Sentimento",
+    page_title="Classificador de Highlights de Notícias",
     page_icon="💬",
     layout="centered",
 )
@@ -31,29 +31,36 @@ def load_model():
 
 pipeline = load_model()
 
-# Mapeamento visual por sentimento
-EMOJI = {"positivo": "😊", "negativo": "😞", "neutro": "😐"}
-COLOR = {"positivo": "green", "negativo": "red", "neutro": "orange"}
+# Mapeamento visual por categoria
+EMOJI = {
+    "ENTERTAINMENT": "🎬", 
+    "POLITICS": "🏛️", 
+    "STYLE & BEAUTY": "💄", 
+    "TRAVEL": "✈️", 
+    "WELLNESS": "🧘", 
+    "OTHER": "📰"
+}
 
 # ── Interface principal ──────────────────────────────────────────────────────
-st.title("💬 Análise de Sentimento")
+st.title(" Classificação de Notícias")
 st.markdown(
-    "Classifica reviews de produtos em **positivo**, **negativo** ou **neutro** "
-    "usando um modelo TF-IDF + Regressão Logística treinado e rastreado no **DagsHub**."
+    "Classifica destaques de notícias nas categorias **ENTERTAINMENT**, **POLITICS**, "
+    "**STYLE & BEAUTY**, **TRAVEL**, **WELLNESS** ou **OTHER** usando um modelo "
+    "treinado e rastreado no **DagsHub**."
 )
 
 st.divider()
 
 # ── Seção 1: Análise de texto único ─────────────────────────────────────────
-st.subheader("Analisar um review")
+st.subheader("Analisar uma manchete")
 
 texto = st.text_area(
-    label="Cole o texto do review aqui:",
+    label="Cole a manchete da notícia aqui:",
     height=120,
-    placeholder='Ex: "O produto chegou rápido e funcionou perfeitamente!"',
+    placeholder='Ex: "New study shows the benefits of morning meditation"',
 )
 
-if st.button("Analisar sentimento", type="primary", use_container_width=True):
+if st.button("Classificar notícia", type="primary", use_container_width=True):
     if texto.strip():
         # Faz a predição
         pred   = pipeline.predict([texto])[0]
@@ -61,7 +68,7 @@ if st.button("Analisar sentimento", type="primary", use_container_width=True):
         classes = pipeline.classes_
 
         emoji = EMOJI.get(pred, "")
-        st.markdown(f"### {emoji} Sentimento detectado: **{pred.upper()}**")
+        st.markdown(f"### {emoji} Categoria detectada: **{pred}**")
 
         st.markdown("##### Probabilidade por classe")
         for cls, prob in zip(classes, probas):
@@ -74,42 +81,47 @@ st.divider()
 # ── Seção 2: Análise em lote via CSV ────────────────────────────────────────
 st.subheader("Análise em lote (CSV)")
 st.markdown(
-    "Envie um arquivo CSV com uma coluna chamada **`texto`**. "
+    "Envie um arquivo CSV com uma coluna chamada **`headline`**. "
     "O modelo vai classificar cada linha e você pode baixar o resultado."
 )
 
 uploaded_file = st.file_uploader(
     "Selecione o arquivo CSV",
     type=["csv"],
-    help="O arquivo deve ter uma coluna chamada 'texto'",
+    help="O arquivo deve ter uma coluna chamada 'headline'",
 )
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
-    if "texto" not in df.columns:
-        st.error("O CSV precisa ter uma coluna chamada 'texto'.")
+    if "headline" not in df.columns:
+        st.error("O CSV precisa ter uma coluna chamada 'headline'.")
     else:
         # Classifica todas as linhas
-        df["sentimento"] = pipeline.predict(df["texto"].astype(str))
+        df["categoria"] = pipeline.predict(df["headline"].astype(str))
 
         # Exibe o resultado
-        st.success(f"{len(df)} reviews classificados!")
+        st.success(f"{len(df)} manchetes classificadas!")
         st.dataframe(df, use_container_width=True)
 
         # Estatísticas rápidas
-        contagem = df["sentimento"].value_counts()
+        contagem = df["categoria"].value_counts()
         col1, col2, col3 = st.columns(3)
-        col1.metric("Positivos",  contagem.get("positivo", 0))
-        col2.metric("Neutros",    contagem.get("neutro", 0))
-        col3.metric("Negativos",  contagem.get("negativo", 0))
+        col1.metric("Entertainment",  contagem.get("ENTERTAINMENT", 0))
+        col2.metric("Politics",       contagem.get("POLITICS", 0))
+        col3.metric("Style & Beauty", contagem.get("STYLE & BEAUTY", 0))
+        
+        col4, col5, col6 = st.columns(3)
+        col4.metric("Travel",         contagem.get("TRAVEL", 0))
+        col5.metric("Wellness",       contagem.get("WELLNESS", 0))
+        col6.metric("Other",          contagem.get("OTHER", 0))
 
         # Download do resultado
         csv_bytes = df.to_csv(index=False).encode("utf-8")
         st.download_button(
             label="Baixar resultado como CSV",
             data=csv_bytes,
-            file_name="resultado_sentimento.csv",
+            file_name="resultado_categorias.csv",
             mime="text/csv",
             use_container_width=True,
         )
