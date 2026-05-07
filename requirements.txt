@@ -1,0 +1,5 @@
+joblib
+mlflow
+scikit-learn
+pandas
+python-dotenv

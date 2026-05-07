@@ -13,6 +13,7 @@ import os
 import joblib
 import mlflow
 import mlflow.sklearn
+from mlflow.tracking import MlflowClient
 from sklearn.metrics import classification_report, accuracy_score, f1_score
 from dotenv import load_dotenv
 
@@ -32,6 +33,9 @@ DAGSHUB_USER  = os.getenv("DAGSHUB_USER")
 DAGSHUB_REPO  = os.getenv("DAGSHUB_REPO")
 DAGSHUB_TOKEN = os.getenv("DAGSHUB_TOKEN")
 
+if not all([DAGSHUB_USER, DAGSHUB_REPO, DAGSHUB_TOKEN]):
+    raise ValueError("Credenciais ausentes! O Docker não recebeu as variáveis (ARG) corretamente.")
+
 # ── Configuração do MLflow ───────────────────────────────────────────────────
 mlflow.set_tracking_uri(
     f"https://dagshub.com/{DAGSHUB_USER}/{DAGSHUB_REPO}.mlflow"
@@ -41,9 +45,16 @@ os.environ["MLFLOW_TRACKING_PASSWORD"] = DAGSHUB_TOKEN
 
 
 def main():
-    # URI para o modelo mais recente no registro
-    # "latest" sempre pega a última versão promovida
-    model_uri = "models:/NewsCategoryClassifier@production"
+    # Busca a versão mais recente do modelo registrada no MLflow
+    client = MlflowClient()
+    model_name = "NewsCategoryClassifier"
+    
+    versions = client.search_model_versions(f"name='{model_name}'")
+    if not versions:
+        raise ValueError(f"Nenhum modelo '{model_name}' encontrado no DagsHub!")
+        
+    latest_version = max([int(v.version) for v in versions])
+    model_uri = f"models:/{model_name}/{latest_version}"
 
     print(f"Baixando modelo: {model_uri}")
     print(f"Fonte: https://dagshub.com/{DAGSHUB_USER}/{DAGSHUB_REPO}")
