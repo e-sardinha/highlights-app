@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from src.prepare_data import load_and_split
+from src.preprocessing import load_and_split
 
 # ── Credenciais ──────────────────────────────────────────────────────────────
 # Durante o docker build, as credenciais chegam como variáveis de ambiente
@@ -37,8 +37,9 @@ if not all([DAGSHUB_USER, DAGSHUB_REPO, DAGSHUB_TOKEN]):
     raise ValueError("Credenciais ausentes! O Docker não recebeu as variáveis (ARG) corretamente.")
 
 # ── Configuração do MLflow ───────────────────────────────────────────────────
+DAGSHUB_REPO_NAME = f"volneiklehm/{DAGSHUB_REPO}" # repo compartilhado
 mlflow.set_tracking_uri(
-    f"https://dagshub.com/{DAGSHUB_USER}/{DAGSHUB_REPO}.mlflow"
+    f"https://dagshub.com/{DAGSHUB_REPO_NAME}.mlflow"
 )
 os.environ["MLFLOW_TRACKING_USERNAME"] = DAGSHUB_USER
 os.environ["MLFLOW_TRACKING_PASSWORD"] = DAGSHUB_TOKEN
@@ -57,7 +58,7 @@ def main():
     model_uri = f"models:/{model_name}/{latest_version}"
 
     print(f"Baixando modelo: {model_uri}")
-    print(f"Fonte: https://dagshub.com/{DAGSHUB_USER}/{DAGSHUB_REPO}")
+    print(f"Fonte: https://dagshub.com/{DAGSHUB_REPO_NAME}")
 
     # Carrega o modelo diretamente do servidor MLflow do DagsHub
     pipeline = mlflow.sklearn.load_model(model_uri)

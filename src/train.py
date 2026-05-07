@@ -28,7 +28,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 # Importa a função de preparação de dados do nosso módulo
-from src.prepare_data import load_and_split
+from src.preprocessing import load_and_split
 
 # ── Carrega as credenciais do arquivo .env ───────────────────────────────────
 load_dotenv()
@@ -40,8 +40,9 @@ DAGSHUB_TOKEN = os.getenv("DAGSHUB_TOKEN")
 # ── Aponta o MLflow para o servidor do DagsHub ───────────────────────────────
 # O DagsHub oferece um servidor MLflow gratuito para cada repositório.
 # A URL segue o padrão: https://dagshub.com/USUARIO/REPOSITORIO.mlflow
+DAGSHUB_REPO_NAME = f"volneiklehm/{DAGSHUB_REPO}" # repo compartilhado
 mlflow.set_tracking_uri(
-    f"https://dagshub.com/{DAGSHUB_USER}/{DAGSHUB_REPO}.mlflow"
+    f"https://dagshub.com/{DAGSHUB_REPO_NAME}.mlflow"
 )
 
 # Autenticação via variáveis de ambiente (não coloque credenciais no código!)
@@ -55,15 +56,14 @@ mlflow.set_experiment("classificacao-noticias")
 # ════════════════════════════════════════════════════════════════════════════
 # MUDE ESTES PARÂMETROS A CADA EXPERIMENTO
 # ════════════════════════════════════════════════════════════════════════════
-MAX_FEATURES = 10000     # Quantas palavras/termos o TF-IDF vai considerar (= tamanho do vocabulário)
-NGRAM_MAX    = 2         # 1 = unigramas | 2 = uni + bigramas
-C            = 10      # Parâmetro de regularização da Regressão Logística/LinearSVC ignorado pelo MultinomialNB   
+MAX_FEATURES = 10000    # Quantas palavras/termos o TF-IDF vai considerar (= tamanho do vocabulário)
+NGRAM_MAX    = 2        # 1 = unigramas | 2 = uni + bigramas
+C            = 10       # Parâmetro de regularização da Regressão Logística/LinearSVC ignorado pelo MultinomialNB   
                         # C pequeno = mais regularização (modelo simples)
                         # C grande  = menos regularização (modelo complexo)
-ALPHA        = 0     # Parâmetro de suavização do MultinomialNB (ignorado pelos outros modelos)
-RUN_NAME     = "exp-1-vocab-largo_multinomialnb_alpha0"   # MUDE a cada run para identificar no DagsHub!
-ESTIMATORS = 1000   # Número de árvores no Random Forest (ignorado pelos outros modelos)
-RUN_NAME     = "exp-1-randonforeste1000"   # MUDE a cada run para identificar no DagsHub!
+ALPHA        = 0        # Parâmetro de suavização do MultinomialNB (ignorado pelos outros modelos)
+ESTIMATORS   = 1000     # Número de árvores no Random Forest (ignorado pelos outros modelos)
+RUN_NAME     = "exp-1-vocab-largo-balanced_csv"   # MUDE a cada run para identificar no DagsHub!
 # ════════════════════════════════════════════════════════════════════════════
 
 
@@ -84,7 +84,7 @@ def main():
             "C":            C,
             "solver":       "lbfgs",
             "test_size":    0.2,
-            "dataset":      "data/News_Category_Dataset_v3.json",
+            "dataset":      "data/News_Category_Dataset_balanced.csv",
         })
 
         # 2. Cria o pipeline: TF-IDF → Regressão Logística
@@ -97,7 +97,7 @@ def main():
                 strip_accents="unicode",  # normaliza acentos
                 sublinear_tf=True,        # aplica log ao TF para suavizar
             )),
-            #("clf", LogisticRegression(C=C, max_iter=1000, solver="lbfgs", multi_class="multinomial",))  # suporte a múltiplas classes
+            ("clf", LogisticRegression(C=C, max_iter=1000, solver="lbfgs"))
             # ── OUTRAS OPÇÕES DE MODELOS PARA EXPERIMENTAR (Basta descomentar) ──
             #("clf", LinearSVC(C=C, max_iter=1000, dual=False)),
             # ────────────────────────────────────────────────────────────────────
@@ -132,7 +132,7 @@ def main():
         print(f"\nRun '{RUN_NAME}' finalizado com sucesso!")
         print(f"Acurácia : {acc:.2%}")
         print(f"F1 (weighted): {f1:.3f}")
-        print(f"\nVisualize em: https://dagshub.com/{DAGSHUB_USER}/{DAGSHUB_REPO}")
+        print(f"\nVisualize em: https://dagshub.com/{DAGSHUB_REPO_NAME}")
 
 
 if __name__ == "__main__":

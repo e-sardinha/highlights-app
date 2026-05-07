@@ -1,3 +1,5 @@
+supabase
+duckdb
 joblib
 mlflow
 scikit-learn
