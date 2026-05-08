@@ -1,34 +1,27 @@
 """
-prepare_data.py — Carrega, limpa e divide o dataset de notícias para classificação de highlights.
+prepare_data.py — Transforma o dataset original em JSON para CSV balanceado.
 
 Uso standalone:
     python src/prepare_data.py
-
-Uso como módulo (importado pelo train.py e evaluate.py):
-    from src.prepare_data import load_and_split
 """
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 import pandas as pd
-from sklearn.model_selection import train_test_split
 
 
-def load_and_split(
+def prepare_json_to_csv(
     path: str = str(BASE_DIR / "data/News_Category_Dataset_v3.json"),
-    test_size: float = 0.2,
+    output_path: str = str(BASE_DIR / "data/News_Category_Dataset_balanced.csv"),
     seed: int = 42,
 ):
     """
-    Carrega o JSON de notícias, faz limpeza básica e divide em treino/teste.
+    Carrega o JSON de notícias, faz limpeza básica e salva um CSV balanceado.
 
     Parâmetros:
-        path      : caminho para o arquivo JSON
-        test_size : proporção do conjunto de teste (padrão: 20%)
-        seed      : semente aleatória para reprodutibilidade
-
-    Retorna:
-        X_train, X_test, y_train, y_test
+        path        : caminho para o arquivo JSON
+        output_path : caminho do CSV de saída
+        seed        : semente aleatória para reprodutibilidade
     """
     print(f"Carregando dados de: {path}")
     df = pd.read_json(path, orient='records', lines=True)
@@ -65,27 +58,12 @@ def load_and_split(
     print(f"Distribuição de categorias após balanceamento:")
     print(df_balanced['category'].value_counts())
 
-    # Salva o dataset limpo e balanceado para referência futura (opcional)
-    balanced_path = BASE_DIR / "data/News_Category_Dataset_balanced.csv"
+    balanced_path = Path(output_path)
+    balanced_path.parent.mkdir(parents=True, exist_ok=True)
     df_balanced.to_csv(balanced_path, index=False)
     print(f"Dataset balanceado salvo em: {balanced_path}")
-
-    X = df_balanced["headline"]
-    y = df_balanced["category"]
-
-    # stratify=y garante que a proporção de classes seja igual em treino e teste
-    return train_test_split(
-        X, y,
-        test_size=test_size,
-        random_state=seed,
-        stratify=y,
-    )
+    return balanced_path
 
 
 if __name__ == "__main__":
-    X_train, X_test, y_train, y_test = load_and_split()
-
-    print(f"Total de amostras de treino : {len(X_train)}")
-    print(f"Total de amostras de teste  : {len(X_test)}")
-    print(f"\nDistribuição de categorias no treino:")
-    print(y_train.value_counts())
+    prepare_json_to_csv()

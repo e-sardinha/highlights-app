@@ -1,0 +1,7 @@
+{
+  "source_path": "C:\\Users\\eduar\\Work\\pos_uea\\11_infra_nuvem\\projeto_final\\highlights-app\\data\\raw\\news_category_raw.parquet",
+  "rows_after_cleaning": 49070,
+  "test_size": 0.2,
+  "seed": 42,
+  "created_at_utc": "2026-05-08T08:09:19.632040+00:00"
+}

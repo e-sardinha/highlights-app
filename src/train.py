@@ -28,7 +28,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 # Importa a função de preparação de dados do nosso módulo
-from src.preprocessing import load_and_split
+from src.preprocessing import load_saved_splits
 
 # ── Carrega as credenciais do arquivo .env ───────────────────────────────────
 load_dotenv()
@@ -63,13 +63,13 @@ C            = 10       # Parâmetro de regularização da Regressão Logística
                         # C grande  = menos regularização (modelo complexo)
 ALPHA        = 0        # Parâmetro de suavização do MultinomialNB (ignorado pelos outros modelos)
 ESTIMATORS   = 1000     # Número de árvores no Random Forest (ignorado pelos outros modelos)
-RUN_NAME     = "exp-1-vocab-largo-balanced_csv"   # MUDE a cada run para identificar no DagsHub!
+RUN_NAME     = "exp-1-vocab-largo-news_category_supabase"   # MUDE a cada run para identificar no DagsHub!
 # ════════════════════════════════════════════════════════════════════════════
 
 
 def main():
-    # Carrega e divide os dados
-    X_train, X_test, y_train, y_test = load_and_split()
+    # Carrega os splits já persistidos no preprocessing
+    X_train, X_test, y_train, y_test = load_saved_splits()
     print(f"Treino: {len(X_train)} amostras | Teste: {len(X_test)} amostras")
 
     # Inicia um run no MLflow
@@ -84,7 +84,7 @@ def main():
             "C":            C,
             "solver":       "lbfgs",
             "test_size":    0.2,
-            "dataset":      "data/News_Category_Dataset_balanced.csv",
+            "dataset":      "data/processed/*.parquet",
         })
 
         # 2. Cria o pipeline: TF-IDF → Regressão Logística

@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from src.preprocessing import load_and_split
+from src.preprocessing import load_saved_splits
 
 # ── Credenciais ──────────────────────────────────────────────────────────────
 # Durante o docker build, as credenciais chegam como variáveis de ambiente
@@ -71,7 +71,7 @@ def main():
     print("Modelo carregado com sucesso!")
 
     # Avalia no conjunto de teste para confirmar que está funcionando
-    _, X_test, _, y_test = load_and_split()
+    _, X_test, _, y_test = load_saved_splits()
     y_pred = pipeline.predict(X_test)
 
     acc = accuracy_score(y_test, y_pred)
