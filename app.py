@@ -37,15 +37,14 @@ EMOJI = {
     "POLITICS": "🏛️", 
     "STYLE & BEAUTY": "💄", 
     "TRAVEL": "✈️", 
-    "WELLNESS": "🧘", 
-    "OTHER": "📰"
+    "WELLNESS": "🧘"
 }
 
 # ── Interface principal ──────────────────────────────────────────────────────
 st.title(" Classificação de Notícias")
 st.markdown(
     "Classifica destaques de notícias nas categorias **ENTERTAINMENT**, **POLITICS**, "
-    "**STYLE & BEAUTY**, **TRAVEL**, **WELLNESS** ou **OTHER** usando um modelo "
+    "**STYLE & BEAUTY**, **TRAVEL** ou **WELLNESS** usando um modelo "
     "treinado e rastreado no **DagsHub**."
 )
 
@@ -111,10 +110,9 @@ if uploaded_file is not None:
         col2.metric("Politics",       contagem.get("POLITICS", 0))
         col3.metric("Style & Beauty", contagem.get("STYLE & BEAUTY", 0))
         
-        col4, col5, col6 = st.columns(3)
+        col4, col5, _ = st.columns(3)
         col4.metric("Travel",         contagem.get("TRAVEL", 0))
         col5.metric("Wellness",       contagem.get("WELLNESS", 0))
-        col6.metric("Other",          contagem.get("OTHER", 0))
 
         # Download do resultado
         csv_bytes = df.to_csv(index=False).encode("utf-8")
@@ -127,6 +125,15 @@ if uploaded_file is not None:
         )
 
 st.divider()
+
+if st.button("Sobre"):
+    st.info(
+        "Aplicação meramente didatica, inspirada no dataset: "
+        "https://www.kaggle.com/datasets/rmisra/news-category-dataset "
+        "e desenvolvida por: Eduardo Sardinha, Gabriel Martin, Jhonata dos santos e "
+        "Volnei Klehm para a disciplina: Infra-Estrutura em Nuvem Ministrada pelo professor: Fábio Santos"
+    )
+
 st.caption(
     "Modelo: TF-IDF + Logistic Regression · "
     "Rastreamento: MLflow + DagsHub · "
